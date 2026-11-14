@@ -13,7 +13,24 @@ jobs:
       - run: npm run build
         env:
           DATABASE_URL: "postgresql://user:pass@localhost:5432/mydb"
-      - run: npx electron-builder --win dir --publish never --config.asar=false --config.appId=com.next.game --config.productName=NextGame --config.directories.output=release --config.files=".next/**/*" --config.files="public/**/*" --config.files="node_modules/**/*" --config.files="package.json" --config.files="main.js" --config.extraMetadata.main=main.js --config.extraMetadata.version=1.0.0
+      - shell: pwsh
+        run: |
+          @{
+            appId = "com.next.game"
+            productName = "NextGame"
+            asar = $false
+            directories = @{ output = "release" }
+            files = @(
+              @{ from = ".next"; to = ".next"; filter = @("**/*") },
+              "public/**/*",
+              "node_modules/**/*",
+              "package.json",
+              "main.js"
+            )
+            extraMetadata = @{ main = "main.js"; version = "1.0.0" }
+            win = @{ target = "dir" }
+          } | ConvertTo-Json -Depth 10 | Set-Content eb.json
+          npx electron-builder --win --publish never --config eb.json
       - uses: actions/upload-artifact@v4
         with:
           name: Game-Ready
