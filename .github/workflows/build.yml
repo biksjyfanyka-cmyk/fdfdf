@@ -1,0 +1,20 @@
+name: Build Next Game EXE
+on: [push]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --legacy-peer-deps
+      - run: npm install --save-dev electron electron-builder --legacy-peer-deps
+      - run: npm run build
+        env:
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/mydb"
+      - run: npx electron-builder --win dir --publish never --config.asar=false --config.appId=com.next.game --config.productName=NextGame --config.directories.output=release --config.files=".next/**/*" --config.files="public/**/*" --config.files="node_modules/**/*" --config.files="package.json" --config.files="main.js" --config.extraMetadata.main=main.js --config.extraMetadata.version=1.0.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Game-Ready
+          path: release/win-unpacked/**/*
